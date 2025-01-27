@@ -27,11 +27,10 @@ loop_print:
     or al, al
     jz finish
 
+    mov ah, 0x0E ; print a character to the screen
+    mov bh, 0 ; provide the page number
 
-    mov ah, 0x0E
-    mov bh, 0
-
-    int 0x10
+    int 0x10; video interrupt
 
     jmp loop_print
 

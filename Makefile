@@ -5,13 +5,27 @@ ASM=nasm
 BUILD_DIR=build
 SRC_DIR=src
 
-$(BUILD_DIR)/$(NAME).img: $(BUILD_DIR)/$(NAME).bin
-	cp $(BUILD_DIR)/$(NAME).bin $(BUILD_DIR)/$(NAME).img
-	truncate -s 1440k $(BUILD_DIR)/$(NAME).img
+#
+# Floppy Disk
+#
+floppy: $(BUILD_DIR)/$(NAME).img
+$(BUILD_DIR)/$(NAME).img: bootloader kernel
+	- dd if=/dev/zero of=$(BUILD_DIR)/$(NAME).img bs=512 count=2880
+	- mkfs.fat -F 12 -n "Simple-OS" $(BUILD_DIR)/$(NAME).img
+	- dd if=$(BUILD_DIR)/bootloader.bin of=$(BUILD_DIR)/$(NAME).img conv=notrunc
+#
+# Bootloader 
+#
+bootloader: $(BUILD_DIR)/bootloader.bin
+$(BUILD_DIR)/bootloader.bin:
+	- $(ASM) -f bin -o $(BUILD_DIR)/bootloader.bin $(SRC_DIR)/bootloader/boot.asm
 
-$(BUILD_DIR)/$(NAME).bin: $(SRC_DIR)/main.asm
-	nasm -f bin -o $(BUILD_DIR)/$(NAME).bin $(SRC_DIR)/main.asm
-
+#
+# Kernel
+#
+kernel: $(BUILD_DIR)/kernel.bin
+$(BUILD_DIR)/kernel.bin:
+	- $(ASM) -f bin -o $(BUILD_DIR)/kernel.bin $(SRC_DIR)/kernel/main.asm
 
 clean:
 	rm -r $(BUILD_DIR)/*
